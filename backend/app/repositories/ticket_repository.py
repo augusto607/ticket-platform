@@ -1,3 +1,4 @@
+from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 
 from app.models.ticket import Ticket
@@ -8,18 +9,57 @@ class TicketRepository:
     """
     Repository responsible for direct ticket database operations.
 
-    This layer should contain persistence logic only.
-    It should not enforce business policy.
+    This layer contains persistence logic only.
+    It should not contain business rules.
     """
 
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(self) -> list[Ticket]:
+    def get_all(
+        self,
+        status: str | None = None,
+        priority: str | None = None,
+        sort_by: str = "created_at",
+        order: str = "desc",
+    ) -> list[Ticket]:
         """
-        Return all tickets from the database.
+        Return tickets from the database with optional filtering and sorting.
+
+        Parameters:
+        - status: optional workflow status filter
+        - priority: optional priority filter
+        - sort_by: field used for sorting
+        - order: ascending or descending sort direction
         """
-        return self.db.query(Ticket).all()
+        query = self.db.query(Ticket)
+
+        # Apply filtering only if the client provided a status value
+        if status is not None:
+            query = query.filter(Ticket.status == status)
+
+        # Apply filtering only if the client provided a priority value
+        if priority is not None:
+            query = query.filter(Ticket.priority == priority)
+
+        # Map user-friendly sort field names to actual SQLAlchemy model columns
+        sortable_columns = {
+            "id": Ticket.id,
+            "title": Ticket.title,
+            "status": Ticket.status,
+            "priority": Ticket.priority,
+            "created_at": Ticket.created_at,
+            "updated_at": Ticket.updated_at,
+        }
+
+        # Select the column requested by the client
+        sort_column = sortable_columns[sort_by]
+
+        # Build ascending or descending SQL sort expression
+        sort_expression = asc(
+            sort_column) if order == "asc" else desc(sort_column)
+
+        return query.order_by(sort_expression).all()
 
     def get_by_id(self, ticket_id: int) -> Ticket | None:
         """
@@ -59,3 +99,10 @@ class TicketRepository:
         self.db.refresh(ticket)
 
         return ticket
+
+    def delete(self, ticket: Ticket) -> None:
+        """
+        Delete an existing ticket record from the database.
+        """
+        self.db.delete(ticket)
+        self.db.commit()
