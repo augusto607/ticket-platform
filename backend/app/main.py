@@ -1,15 +1,15 @@
 from fastapi import FastAPI
 
+from app.api.routes.auth import router as auth_router
 from app.api.routes.health import router as health_router
 from app.api.routes.tickets import router as tickets_router
 from app.core.config import settings
 from app.core.db import Base, engine
 from app.models.ticket import Ticket  # noqa: F401
+from app.models.user import User  # noqa: F401
 
 # Create database tables at startup time.
-# IMPORTANT:
-# This is acceptable for Phase 1 learning.
-# In a more production-like setup, we will replace this with Alembic migrations.
+# This is acceptable for the current learning stage.
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -19,6 +19,7 @@ app = FastAPI(
 )
 
 app.include_router(health_router)
+app.include_router(auth_router)
 app.include_router(tickets_router)
 
 
