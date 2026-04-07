@@ -9,8 +9,11 @@ class UserCreate(BaseModel):
     """
     email: EmailStr
     full_name: str = Field(..., min_length=2, max_length=255)
-    # password: str = Field(..., min_length=8, max_length=128)
-    password: str = Field(..., min_length=8, max_length=72)
+
+    # Keep strong minimum length.
+    # We no longer need bcrypt's 72-byte restriction because Argon2 does not
+    # have that same legacy limitation.
+    password: str = Field(..., min_length=8, max_length=128)
 
 
 class UserLogin(BaseModel):
@@ -18,8 +21,7 @@ class UserLogin(BaseModel):
     Schema used when logging in.
     """
     email: EmailStr
-    # password: str = Field(..., min_length=8, max_length=128)
-    password: str = Field(..., min_length=8, max_length=72)
+    password: str = Field(..., min_length=8, max_length=128)
 
 
 class UserResponse(BaseModel):
