@@ -1,13 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
-from jose import jwt
+from jose import JWTError, jwt
 from pwdlib import PasswordHash
 
 # Create a password hasher using Argon2.
-# This follows the current FastAPI-recommended direction for password hashing.
+# This is a modern password hashing choice for new systems.
 password_hash = PasswordHash.recommended()
 
-# In a later phase, we should move this secret into environment variables.
+# In the next improvement step, this secret should move into env settings.
 SECRET_KEY = "change-this-in-phase-3-2"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -23,9 +23,6 @@ def utc_now() -> datetime:
 def hash_password(password: str) -> str:
     """
     Hash a plain-text password before storing it.
-
-    We use Argon2 through pwdlib, which is a modern password-hashing choice
-    recommended for new systems.
     """
     return password_hash.hash(password)
 
@@ -53,3 +50,13 @@ def create_access_token(subject: str) -> str:
     }
 
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_access_token(token: str) -> dict:
+    """
+    Decode and validate a JWT access token.
+
+    Returns the decoded payload if valid.
+    Raises JWTError if the token is invalid, expired, or malformed.
+    """
+    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

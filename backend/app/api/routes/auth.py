@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.security import create_access_token, hash_password, verify_password
+from app.deps import get_current_user
 from app.repositories.user_repository import UserRepository
-from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse
+from app.schemas.user import TokenResponse, UserCreate, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -18,7 +20,7 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     1. Check if email is already in use
     2. Hash the password
     3. Create the user
-    4. Return safe user data (never the password hash)
+    4. Return safe user data
     """
     repository = UserRepository(db)
 
@@ -41,28 +43,35 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login_user(credentials: UserLogin, db: Session = Depends(get_db)):
+def login_user(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
     """
     Authenticate a user and return a JWT access token.
 
-    Flow:
-    1. Find the user by email
-    2. Verify the password against the stored hash
-    3. Return a signed access token
+    OAuth2PasswordRequestForm expects:
+    - username
+    - password
+
+    In this project, we use the email as the login identifier,
+    so form_data.username contains the user's email.
     """
     repository = UserRepository(db)
 
-    user = repository.get_by_email(credentials.email)
+    user = repository.get_by_email(form_data.username)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if not verify_password(credentials.password, user.hashed_password):
+    if not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     if not user.is_active:
@@ -74,3 +83,11 @@ def login_user(credentials: UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(subject=user.email)
 
     return TokenResponse(access_token=access_token)
+
+
+@router.get("/me", response_model=UserResponse)
+def read_current_user(current_user=Depends(get_current_user)):
+    """
+    Return the currently authenticated user.
+    """
+    return current_user
