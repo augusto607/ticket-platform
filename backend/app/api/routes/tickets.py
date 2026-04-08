@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
-from app.deps import get_ticket_service
+from app.deps import get_current_user, get_ticket_service
 from app.schemas.ticket import TicketCreate, TicketResponse, TicketUpdate
 from app.services.ticket_service import TicketService
 
@@ -28,18 +28,15 @@ def list_tickets(
         description="Sort direction: asc or desc.",
     ),
     service: TicketService = Depends(get_ticket_service),
+    current_user=Depends(get_current_user),
 ):
     """
-    Return tickets with optional filtering and sorting.
-
-    Query parameter examples:
-    - /tickets/?status=open
-    - /tickets/?priority=high
-    - /tickets/?sort_by=updated_at&order=asc
-    - /tickets/?status=closed&priority=low
+    Return only the authenticated user's tickets,
+    with optional filtering and sorting.
     """
     try:
         return service.list_tickets(
+            owner_id=current_user.id,
             status=status_filter,
             priority=priority_filter,
             sort_by=sort_by,
@@ -53,11 +50,15 @@ def list_tickets(
 
 
 @router.get("/{ticket_id}", response_model=TicketResponse)
-def get_ticket(ticket_id: int, service: TicketService = Depends(get_ticket_service)):
+def get_ticket(
+    ticket_id: int,
+    service: TicketService = Depends(get_ticket_service),
+    current_user=Depends(get_current_user),
+):
     """
-    Return one ticket by ID.
+    Return one ticket by ID only if it belongs to the authenticated user.
     """
-    ticket = service.get_ticket(ticket_id)
+    ticket = service.get_ticket(ticket_id, owner_id=current_user.id)
 
     if ticket is None:
         raise HTTPException(
@@ -72,12 +73,13 @@ def get_ticket(ticket_id: int, service: TicketService = Depends(get_ticket_servi
 def create_ticket(
     ticket: TicketCreate,
     service: TicketService = Depends(get_ticket_service),
+    current_user=Depends(get_current_user),
 ):
     """
-    Create a new ticket.
+    Create a new ticket owned by the authenticated user.
     """
     try:
-        return service.create_ticket(ticket)
+        return service.create_ticket(ticket, owner_id=current_user.id)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -90,17 +92,17 @@ def update_ticket(
     ticket_id: int,
     ticket_data: TicketUpdate,
     service: TicketService = Depends(get_ticket_service),
+    current_user=Depends(get_current_user),
 ):
     """
-    Update an existing ticket.
-
-    PUT is used here as a full update endpoint, but because the schema fields
-    are optional, the practical behavior is closer to a partial update.
-    For now this is acceptable for learning. Later we can split PUT vs PATCH
-    more explicitly if we want stricter REST semantics.
+    Update an existing ticket only if it belongs to the authenticated user.
     """
     try:
-        updated_ticket = service.update_ticket(ticket_id, ticket_data)
+        updated_ticket = service.update_ticket(
+            ticket_id=ticket_id,
+            owner_id=current_user.id,
+            ticket_data=ticket_data,
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -120,13 +122,13 @@ def update_ticket(
 def delete_ticket(
     ticket_id: int,
     service: TicketService = Depends(get_ticket_service),
+    current_user=Depends(get_current_user),
 ):
     """
-    Delete an existing ticket.
-
-    A 204 response means the deletion succeeded and there is no response body.
+    Delete an existing ticket only if it belongs to the authenticated user.
     """
-    deleted = service.delete_ticket(ticket_id)
+    deleted = service.delete_ticket(
+        ticket_id=ticket_id, owner_id=current_user.id)
 
     if not deleted:
         raise HTTPException(

@@ -14,16 +14,14 @@ class TicketService:
 
     def list_tickets(
         self,
+        owner_id: int,
         status: str | None = None,
         priority: str | None = None,
         sort_by: str = "created_at",
         order: str = "desc",
     ):
         """
-        Return tickets using optional filters and sorting.
-
-        The service validates client-friendly inputs before delegating
-        to the repository.
+        Return tickets for one specific owner using optional filters and sorting.
         """
         allowed_statuses = {"open", "in_progress", "closed"}
         allowed_priorities = {"low", "medium", "high"}
@@ -40,7 +38,6 @@ class TicketService:
         normalized_status = None
         if status is not None:
             normalized_status = status.lower()
-
             if normalized_status not in allowed_statuses:
                 raise ValueError(
                     f"Invalid status '{status}'. Allowed values: {allowed_statuses}"
@@ -49,7 +46,6 @@ class TicketService:
         normalized_priority = None
         if priority is not None:
             normalized_priority = priority.lower()
-
             if normalized_priority not in allowed_priorities:
                 raise ValueError(
                     f"Invalid priority '{priority}'. Allowed values: {allowed_priorities}"
@@ -66,24 +62,21 @@ class TicketService:
                 f"Invalid order '{order}'. Allowed values: {allowed_order_values}"
             )
 
-        return self.repository.get_all(
+        return self.repository.get_all_by_owner(
+            owner_id=owner_id,
             status=normalized_status,
             priority=normalized_priority,
             sort_by=sort_by,
             order=normalized_order,
         )
 
-    def get_ticket(self, ticket_id: int):
+    def get_ticket(self, ticket_id: int, owner_id: int):
         """
-        Return a single ticket by ID.
-
-        The service does not raise HTTP errors directly.
-        It returns None if the ticket does not exist,
-        and the route decides how to map that to HTTP.
+        Return one ticket only if it belongs to the specified owner.
         """
-        return self.repository.get_by_id(ticket_id)
+        return self.repository.get_by_id_and_owner(ticket_id, owner_id)
 
-    def create_ticket(self, ticket_data: TicketCreate):
+    def create_ticket(self, ticket_data: TicketCreate, owner_id: int):
         """
         Validate business rules before creating a ticket.
         """
@@ -99,13 +92,13 @@ class TicketService:
 
         ticket_data.priority = normalized_priority
 
-        return self.repository.create(ticket_data)
+        return self.repository.create(ticket_data, owner_id)
 
-    def update_ticket(self, ticket_id: int, ticket_data: TicketUpdate):
+    def update_ticket(self, ticket_id: int, owner_id: int, ticket_data: TicketUpdate):
         """
-        Update an existing ticket after validating business rules.
+        Update an existing ticket only if it belongs to the specified owner.
         """
-        ticket = self.repository.get_by_id(ticket_id)
+        ticket = self.repository.get_by_id_and_owner(ticket_id, owner_id)
 
         if ticket is None:
             return None
@@ -137,15 +130,11 @@ class TicketService:
 
         return self.repository.update(ticket, ticket_data)
 
-    def delete_ticket(self, ticket_id: int) -> bool:
+    def delete_ticket(self, ticket_id: int, owner_id: int) -> bool:
         """
-        Delete a ticket by ID.
-
-        Returns:
-        - True if the ticket existed and was deleted
-        - False if the ticket was not found
+        Delete a ticket only if it belongs to the specified owner.
         """
-        ticket = self.repository.get_by_id(ticket_id)
+        ticket = self.repository.get_by_id_and_owner(ticket_id, owner_id)
 
         if ticket is None:
             return False
