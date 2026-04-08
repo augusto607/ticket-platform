@@ -1,16 +1,13 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, Integer, String, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
 
 from app.core.db import Base
 
 
-def utc_now():
+def utc_now() -> datetime:
     """
-    Returns the current UTC time as a timezone-aware datetime.
-
-    Using a function ensures SQLAlchemy calls it at runtime
-    for each row, not once at import time.
+    Return the current UTC time as a timezone-aware datetime.
     """
     return datetime.now(timezone.utc)
 
@@ -32,15 +29,20 @@ class Ticket(Base):
 
     priority = Column(String(50), nullable=False, default="medium")
 
+    # Foreign key pointing to the user who owns this ticket.
+    # This is the foundation for authorization rules.
+    owner_id = Column(Integer, ForeignKey("users.id"),
+                      nullable=False, index=True)
+
     created_at = Column(
         DateTime(timezone=True),
-        default=utc_now,   # ✅ pass function, not value
+        default=utc_now,
         nullable=False,
     )
 
     updated_at = Column(
         DateTime(timezone=True),
-        default=utc_now,   # ✅ same here
-        onupdate=utc_now,  # ✅ called on update
+        default=utc_now,
+        onupdate=utc_now,
         nullable=False,
     )

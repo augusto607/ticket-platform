@@ -16,33 +16,25 @@ class TicketRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(
+    def get_all_by_owner(
         self,
+        owner_id: int,
         status: str | None = None,
         priority: str | None = None,
         sort_by: str = "created_at",
         order: str = "desc",
     ) -> list[Ticket]:
         """
-        Return tickets from the database with optional filtering and sorting.
-
-        Parameters:
-        - status: optional workflow status filter
-        - priority: optional priority filter
-        - sort_by: field used for sorting
-        - order: ascending or descending sort direction
+        Return tickets owned by a specific user, with optional filtering and sorting.
         """
-        query = self.db.query(Ticket)
+        query = self.db.query(Ticket).filter(Ticket.owner_id == owner_id)
 
-        # Apply filtering only if the client provided a status value
         if status is not None:
             query = query.filter(Ticket.status == status)
 
-        # Apply filtering only if the client provided a priority value
         if priority is not None:
             query = query.filter(Ticket.priority == priority)
 
-        # Map user-friendly sort field names to actual SQLAlchemy model columns
         sortable_columns = {
             "id": Ticket.id,
             "title": Ticket.title,
@@ -52,30 +44,32 @@ class TicketRepository:
             "updated_at": Ticket.updated_at,
         }
 
-        # Select the column requested by the client
         sort_column = sortable_columns[sort_by]
-
-        # Build ascending or descending SQL sort expression
         sort_expression = asc(
             sort_column) if order == "asc" else desc(sort_column)
 
         return query.order_by(sort_expression).all()
 
-    def get_by_id(self, ticket_id: int) -> Ticket | None:
+    def get_by_id_and_owner(self, ticket_id: int, owner_id: int) -> Ticket | None:
         """
-        Return one ticket by its ID, or None if not found.
+        Return one ticket by ID only if it belongs to the specified owner.
         """
-        return self.db.query(Ticket).filter(Ticket.id == ticket_id).first()
+        return (
+            self.db.query(Ticket)
+            .filter(Ticket.id == ticket_id, Ticket.owner_id == owner_id)
+            .first()
+        )
 
-    def create(self, ticket_data: TicketCreate) -> Ticket:
+    def create(self, ticket_data: TicketCreate, owner_id: int) -> Ticket:
         """
-        Create a new ticket record in the database.
+        Create a new ticket record owned by the specified user.
         """
         ticket = Ticket(
             title=ticket_data.title,
             description=ticket_data.description,
             priority=ticket_data.priority,
             status="open",
+            owner_id=owner_id,
         )
 
         self.db.add(ticket)
