@@ -1,16 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
-from jose import JWTError, jwt
+from jose import jwt
 from pwdlib import PasswordHash
+
+from app.core.config import settings
 
 # Create a password hasher using Argon2.
 # This is a modern password hashing choice for new systems.
 password_hash = PasswordHash.recommended()
-
-# In the next improvement step, this secret should move into env settings.
-SECRET_KEY = "change-this-in-phase-3-2"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def utc_now() -> datetime:
@@ -42,14 +39,20 @@ def create_access_token(subject: str) -> str:
     - sub: token subject (the user email in this project)
     - exp: expiration timestamp
     """
-    expires_at = utc_now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expires_at = utc_now() + timedelta(
+        minutes=settings.access_token_expire_minutes
+    )
 
     payload = {
         "sub": subject,
         "exp": expires_at,
     }
 
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(
+        payload,
+        settings.secret_key,
+        algorithm=settings.algorithm,
+    )
 
 
 def decode_access_token(token: str) -> dict:
@@ -57,6 +60,10 @@ def decode_access_token(token: str) -> dict:
     Decode and validate a JWT access token.
 
     Returns the decoded payload if valid.
-    Raises JWTError if the token is invalid, expired, or malformed.
+    Raises an error if the token is invalid, expired, or malformed.
     """
-    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    return jwt.decode(
+        token,
+        settings.secret_key,
+        algorithms=[settings.algorithm],
+    )
