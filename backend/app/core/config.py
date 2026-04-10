@@ -21,10 +21,15 @@ class Settings(BaseSettings):
     postgres_host: str
     postgres_port: int = 5432
 
+    # Security settings
+    secret_key: str
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
+
     # Tell Pydantic to read values from a .env file if available
     model_config = SettingsConfigDict(
         env_file=".env",
-        extra="ignore"
+        extra="ignore",
     )
 
     @property
