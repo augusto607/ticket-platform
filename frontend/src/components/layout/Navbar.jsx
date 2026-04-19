@@ -1,24 +1,53 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import Button from "../ui/Button";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Navbar() {
+    const { isAuthenticated, user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    function handleLogout() {
+        logout();
+        navigate("/login");
+    }
+
     return (
         <header className="topbar">
             <div className="topbar__inner">
-                <div className="topbar__brand">Ticket Platform</div>
+                <div className="topbar__brand">ITBrain Platform</div>
 
                 <nav className="topbar__nav">
                     <Link className="topbar__link" to="/">
                         Dashboard
                     </Link>
-                    <Link className="topbar__link" to="/tickets">
-                        Tickets
-                    </Link>
-                    <Link className="topbar__link" to="/login">
-                        Login
-                    </Link>
-                    <Link className="topbar__link" to="/register">
-                        Register
-                    </Link>
+
+                    {isAuthenticated && (
+                        <Link className="topbar__link" to="/tickets">
+                            Tickets
+                        </Link>
+                    )}
+
+                    {!isAuthenticated && (
+                        <>
+                            <Link className="topbar__link" to="/login">
+                                Login
+                            </Link>
+                            <Link className="topbar__link" to="/register">
+                                Register
+                            </Link>
+                        </>
+                    )}
+
+                    {isAuthenticated && (
+                        <>
+                            <span className="topbar__link">
+                                {user?.full_name || user?.email}
+                            </span>
+                            <Button variant="secondary" onClick={handleLogout}>
+                                Logout
+                            </Button>
+                        </>
+                    )}
                 </nav>
             </div>
         </header>

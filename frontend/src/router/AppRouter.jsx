@@ -4,6 +4,7 @@ import Dashboard from "../pages/Dashboard";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Tickets from "../pages/Tickets";
+import ProtectedRoute from "./ProtectedRoute";
 
 export default function AppRouter() {
     return (
@@ -14,7 +15,14 @@ export default function AppRouter() {
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-                    <Route path="/tickets" element={<Tickets />} />
+                    <Route
+                        path="/tickets"
+                        element={
+                            <ProtectedRoute>
+                                <Tickets />
+                            </ProtectedRoute>
+                        }
+                    />
                 </Routes>
             </div>
         </BrowserRouter>
