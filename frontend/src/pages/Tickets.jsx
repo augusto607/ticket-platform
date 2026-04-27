@@ -4,7 +4,12 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import PageContainer from "../components/layout/PageContainer";
 import { useAuth } from "../context/AuthContext";
-import { createTicket, fetchMyTickets } from "../api/tickets";
+import {
+    createTicket,
+    deleteTicket,
+    fetchMyTickets,
+    updateTicket,
+} from "../api/tickets";
 
 export default function Tickets() {
     const { user } = useAuth();
@@ -12,6 +17,7 @@ export default function Tickets() {
     const [tickets, setTickets] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [actionTicketId, setActionTicketId] = useState(null);
 
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
@@ -23,7 +29,7 @@ export default function Tickets() {
     });
 
     /*
-      Load the authenticated user's tickets from the backend.
+      Load tickets from the backend for the authenticated user.
     */
     async function loadTickets() {
         setIsLoading(true);
@@ -40,15 +46,12 @@ export default function Tickets() {
         }
     }
 
-    /*
-      Load tickets once when the page mounts.
-    */
     useEffect(() => {
         loadTickets();
     }, []);
 
     /*
-      Update local form state when the user types.
+      Generic form change handler for ticket creation form.
     */
     function handleChange(event) {
         const { name, value } = event.target;
@@ -60,7 +63,7 @@ export default function Tickets() {
     }
 
     /*
-      Submit a new ticket to the backend and refresh the list.
+      Create a new ticket.
     */
     async function handleSubmit(event) {
         event.preventDefault();
@@ -71,11 +74,6 @@ export default function Tickets() {
         try {
             const newTicket = await createTicket(formData);
 
-            /*
-              Optimistic UI update:
-              add the new ticket to the top of the list immediately
-              instead of waiting for a full refetch.
-            */
             setTickets((previous) => [newTicket, ...previous]);
 
             setFormData({
@@ -93,12 +91,70 @@ export default function Tickets() {
         }
     }
 
+    /*
+      Update one ticket field, such as status or priority.
+    */
+    async function handleTicketUpdate(ticketId, updateData) {
+        setErrorMessage("");
+        setSuccessMessage("");
+        setActionTicketId(ticketId);
+
+        try {
+            const updatedTicket = await updateTicket(ticketId, updateData);
+
+            setTickets((previous) =>
+                previous.map((ticket) =>
+                    ticket.id === ticketId ? updatedTicket : ticket
+                )
+            );
+
+            setSuccessMessage("Ticket updated successfully.");
+        } catch (error) {
+            console.error("Failed to update ticket:", error);
+            setErrorMessage("Could not update the ticket. Please try again.");
+        } finally {
+            setActionTicketId(null);
+        }
+    }
+
+    /*
+      Delete one ticket after user confirmation.
+    */
+    async function handleTicketDelete(ticketId) {
+        const confirmed = window.confirm(
+            "Are you sure you want to delete this ticket?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setErrorMessage("");
+        setSuccessMessage("");
+        setActionTicketId(ticketId);
+
+        try {
+            await deleteTicket(ticketId);
+
+            setTickets((previous) =>
+                previous.filter((ticket) => ticket.id !== ticketId)
+            );
+
+            setSuccessMessage("Ticket deleted successfully.");
+        } catch (error) {
+            console.error("Failed to delete ticket:", error);
+            setErrorMessage("Could not delete the ticket. Please try again.");
+        } finally {
+            setActionTicketId(null);
+        }
+    }
+
     return (
         <PageContainer>
             <h1 className="page-title">My Tickets</h1>
             <p className="page-subtitle">
-                Welcome {user?.full_name || user?.email}. Here you can create and view
-                your own tickets in the platform.
+                Welcome {user?.full_name || user?.email}. Create, review, and manage
+                your own tickets.
             </p>
 
             <div className="section-stack">
@@ -166,7 +222,7 @@ export default function Tickets() {
                         <div>
                             <h2 style={{ margin: 0 }}>My ticket list</h2>
                             <p className="page-subtitle" style={{ margin: "8px 0 0" }}>
-                                Your authenticated tickets are loaded directly from the backend.
+                                Manage tickets loaded from the protected backend API.
                             </p>
                         </div>
 
@@ -178,7 +234,10 @@ export default function Tickets() {
                     {isLoading ? (
                         <p>Loading tickets...</p>
                     ) : tickets.length === 0 ? (
-                        <p>You do not have any tickets yet.</p>
+                        <div className="empty-state">
+                            <p>You do not have any tickets yet.</p>
+                            <p>Create your first ticket using the form above.</p>
+                        </div>
                     ) : (
                         <div className="ticket-list">
                             {tickets.map((ticket) => (
@@ -186,10 +245,16 @@ export default function Tickets() {
                                     <div className="ticket-card__header">
                                         <div>
                                             <h3 className="ticket-card__title">{ticket.title}</h3>
-                                            <p style={{ margin: "8px 0 0", color: "var(--color-text-soft)" }}>
+                                            <p
+                                                style={{
+                                                    margin: "8px 0 0",
+                                                    color: "var(--color-text-soft)",
+                                                }}
+                                            >
                                                 {ticket.description || "No description provided."}
                                             </p>
                                         </div>
+
                                         <div className="ticket-badge">#{ticket.id}</div>
                                     </div>
 
@@ -203,6 +268,62 @@ export default function Tickets() {
                                         <span className="ticket-badge">
                                             Created: {new Date(ticket.created_at).toLocaleString()}
                                         </span>
+                                        <span className="ticket-badge">
+                                            Updated: {new Date(ticket.updated_at).toLocaleString()}
+                                        </span>
+                                    </div>
+
+                                    <div className="ticket-actions">
+                                        <div className="ticket-action-group">
+                                            <label className="ticket-action-label">
+                                                Update status
+                                            </label>
+                                            <select
+                                                className="ui-input"
+                                                value={ticket.status}
+                                                disabled={actionTicketId === ticket.id}
+                                                onChange={(event) =>
+                                                    handleTicketUpdate(ticket.id, {
+                                                        status: event.target.value,
+                                                    })
+                                                }
+                                            >
+                                                <option value="open">Open</option>
+                                                <option value="in_progress">In progress</option>
+                                                <option value="closed">Closed</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="ticket-action-group">
+                                            <label className="ticket-action-label">
+                                                Update priority
+                                            </label>
+                                            <select
+                                                className="ui-input"
+                                                value={ticket.priority}
+                                                disabled={actionTicketId === ticket.id}
+                                                onChange={(event) =>
+                                                    handleTicketUpdate(ticket.id, {
+                                                        priority: event.target.value,
+                                                    })
+                                                }
+                                            >
+                                                <option value="low">Low</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="high">High</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="ticket-action-group">
+                                            <label className="ticket-action-label">Danger zone</label>
+                                            <Button
+                                                variant="danger"
+                                                disabled={actionTicketId === ticket.id}
+                                                onClick={() => handleTicketDelete(ticket.id)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
                                     </div>
                                 </Card>
                             ))}
