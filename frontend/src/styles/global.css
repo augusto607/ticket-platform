@@ -301,3 +301,41 @@ input {
     flex-direction: column;
     gap: 24px;
 }
+
+.ticket-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.ticket-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 150px;
+}
+
+.ticket-action-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-text-soft);
+}
+
+.ui-button--danger {
+    background: var(--color-danger);
+    color: white;
+}
+
+.ui-button--danger:hover {
+    background: #b91c1c;
+}
+
+.empty-state {
+    padding: 28px;
+    text-align: center;
+    color: var(--color-text-soft);
+    background: var(--color-surface-soft);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--color-border);
+}
