@@ -339,3 +339,69 @@ input {
     border-radius: var(--radius-md);
     border: 1px dashed var(--color-border);
 }
+
+.brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-logo__mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--color-primary), #0f766e);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    box-shadow: var(--shadow-sm);
+}
+
+.brand-logo__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+    color: var(--color-text);
+}
+
+.brand-logo__text strong {
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: -0.3px;
+}
+
+.brand-logo__text small {
+    margin-top: 2px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-text-soft);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+.delete-confirmation {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.delete-confirmation p {
+    margin: 0;
+    color: #991b1b;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.delete-confirmation__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}

@@ -28,6 +28,8 @@ export default function Tickets() {
         priority: "medium",
     });
 
+    const [ticketPendingDelete, setTicketPendingDelete] = useState(null);
+
     /*
       Load tickets from the backend for the authenticated user.
     */
@@ -121,14 +123,6 @@ export default function Tickets() {
       Delete one ticket after user confirmation.
     */
     async function handleTicketDelete(ticketId) {
-        const confirmed = window.confirm(
-            "Are you sure you want to delete this ticket?"
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
         setErrorMessage("");
         setSuccessMessage("");
         setActionTicketId(ticketId);
@@ -140,6 +134,7 @@ export default function Tickets() {
                 previous.filter((ticket) => ticket.id !== ticketId)
             );
 
+            setTicketPendingDelete(null);
             setSuccessMessage("Ticket deleted successfully.");
         } catch (error) {
             console.error("Failed to delete ticket:", error);
@@ -316,13 +311,38 @@ export default function Tickets() {
 
                                         <div className="ticket-action-group">
                                             <label className="ticket-action-label">Danger zone</label>
-                                            <Button
-                                                variant="danger"
-                                                disabled={actionTicketId === ticket.id}
-                                                onClick={() => handleTicketDelete(ticket.id)}
-                                            >
-                                                Delete
-                                            </Button>
+
+                                            {ticketPendingDelete === ticket.id ? (
+                                                <div className="delete-confirmation">
+                                                    <p>Delete this ticket?</p>
+
+                                                    <div className="delete-confirmation__actions">
+                                                        <Button
+                                                            variant="danger"
+                                                            disabled={actionTicketId === ticket.id}
+                                                            onClick={() => handleTicketDelete(ticket.id)}
+                                                        >
+                                                            Yes, delete
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="secondary"
+                                                            disabled={actionTicketId === ticket.id}
+                                                            onClick={() => setTicketPendingDelete(null)}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    variant="danger"
+                                                    disabled={actionTicketId === ticket.id}
+                                                    onClick={() => setTicketPendingDelete(ticket.id)}
+                                                >
+                                                    Delete
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </Card>

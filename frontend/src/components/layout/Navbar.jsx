@@ -14,7 +14,13 @@ export default function Navbar() {
     return (
         <header className="topbar">
             <div className="topbar__inner">
-                <div className="topbar__brand">ITBrain Platform</div>
+                <Link className="brand-logo" to="/">
+                    <span className="brand-logo__mark">IT</span>
+                    <span className="brand-logo__text">
+                        <strong>Brain</strong>
+                        <small>Platform</small>
+                    </span>
+                </Link>
 
                 <nav className="topbar__nav">
                     <Link className="topbar__link" to="/">
