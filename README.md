@@ -86,6 +86,29 @@ The application follows a clean separation between frontend and backend.
 - Node.js (v18+ recommended)
 - npm
 
+### Environment Variables
+
+Before running the project, you must create a `.env` file in the root directory.
+
+You can use the provided example:
+
+```bash
+cp .env.example .env
+```
+
+Then adjust the values if needed.
+
+Key variables explained
+
+- DATABASE_URL
+    Connection string used by the backend to connect to PostgreSQL.
+- POSTGRES_*
+    Used by Docker to configure the database container.
+- SECRET_KEY
+    Used to sign JWT tokens. Change this in production.
+- ACCESS_TOKEN_EXPIRE_MINUTES
+    Controls token expiration time.
+
 ### Clone the repository
 
 ```bash
