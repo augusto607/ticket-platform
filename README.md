@@ -112,8 +112,8 @@ Key variables explained
 ### Clone the repository
 
 ```bash
-git clone <your-repo-url>
 cd <your-project-folder>
+git clone https://github.com/augusto607/ticket-platform
 ```
 
 ### Start Backend (Docker)
