@@ -10,6 +10,28 @@ This project is designed as a portfolio-grade system that demonstrates backend a
 
 The platform is built with scalability in mind, with future plans to expand into role-based access, support team workflows, and CMDB integration.
 
+## Screenshots
+
+### Dashboard
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Login
+
+![Login](docs/screenshots/login.png)
+
+### Tickets
+
+![Tickets](docs/screenshots/tickets.png)
+
+### Create Ticket
+
+![Create Ticket](docs/screenshots/create-ticket.png)
+
+### Delete Confirmation
+
+![Delete](docs/screenshots/delete-confirm.png)
+
 ## Features (v1)
 
 - User registration and authentication (JWT-based)
