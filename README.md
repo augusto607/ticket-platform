@@ -82,6 +82,8 @@ The application follows a clean separation between frontend and backend.
 
 ### Prerequisites
 
+Install in your computer:
+
 - Docker
 - Node.js (v18+ recommended)
 - npm
