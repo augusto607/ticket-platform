@@ -142,6 +142,7 @@ docker compose exec backend alembic upgrade head
 
 ## Project Structure
 
+```code
 ticket-platform/
 ├── backend/
 │   ├── app/
@@ -161,6 +162,7 @@ ticket-platform/
 │   │   └── styles/
 ├── docker-compose.yml
 └── README.md
+```
 
 ## Roadmap (v2)
 
