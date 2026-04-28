@@ -82,6 +82,8 @@ The application follows a clean separation between frontend and backend.
 
 ### Prerequisites
 
+Install in your computer:
+
 - Docker
 - Node.js (v18+ recommended)
 - npm
@@ -100,6 +102,7 @@ Then adjust the values if needed.
 
 Key variables explained
 
+```
 - DATABASE_URL
     Connection string used by the backend to connect to PostgreSQL.
 - POSTGRES_*
@@ -108,6 +111,7 @@ Key variables explained
     Used to sign JWT tokens. Change this in production.
 - ACCESS_TOKEN_EXPIRE_MINUTES
     Controls token expiration time.
+```
 
 ### Clone the repository
 
@@ -121,6 +125,14 @@ git clone https://github.com/augusto607/ticket-platform
 ```bash
 docker compose up
 ```
+
+### How Docker uses the .env file
+
+Docker Compose automatically reads the `.env` file and injects values into:
+
+- the database container
+
+- the backend service
 
 ### Backend runs on
 
