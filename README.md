@@ -95,44 +95,53 @@ cd <your-project-folder>
 
 ### Start Backend (Docker)
 
+```bash
 docker compose up
+```
 
 ### Backend runs on
+
 <http://localhost:8000>
 
 ### Start Frontend
 
+```bash
 cd frontend
 npm install
-npm run dev
+npm run dev 
+```
 
 ### Frontend runs on
+
 <http://localhost:5173>
 
 ### Database Migrations
 
+```bash
 docker compose exec backend alembic upgrade head
+```
 
 ---
 
 # Step 8 — API overview
 
-```markdown
 ## API Overview
 
 ### Authentication
+
 - POST /auth/register
 - POST /auth/login
 - GET /auth/me
 
 ### Tickets
+
 - GET /tickets/
 - POST /tickets/
 - PUT /tickets/{id}
 - DELETE /tickets/{id}
 
-
 ## Project Structure
+
 ticket-platform/
 ├── backend/
 │   ├── app/
@@ -153,8 +162,6 @@ ticket-platform/
 ├── docker-compose.yml
 └── README.md
 
-
-
 ## Roadmap (v2)
 
 Planned improvements:
@@ -167,12 +174,12 @@ Planned improvements:
 - Improved UI/UX and animations
 - Deployment to cloud environment
 
-
 ## Author
 
 Built as part of a continuous learning and development journey to transition into a high-level full-stack and DevOps role.
 
 Focus areas:
+
 - Backend architecture
 - API design
 - Frontend integration
